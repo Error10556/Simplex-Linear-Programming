@@ -49,7 +49,7 @@ Iter GetBest(Iter begin, Iter end, Comp comparator)
 	return GetBest(begin, end, comparator, [](decltype(*begin)) {return true;});
 }
 
-void Simplex(fmatrix& mat, double eps, vector<int>& basic)
+bool Simplex(fmatrix& mat, double eps, vector<int>& basic)
 {
 	double* toprow = mat.RowPtr(0);
 	int w = mat.Width();
@@ -66,8 +66,10 @@ void Simplex(fmatrix& mat, double eps, vector<int>& basic)
 		for (int i = 0; i < h - 1; i++)
 			fracs[i] = mat.Cell(1 + i, w - 1) / mat.Cell(1 + i, col);
 		int row = GetBest(fracs, fracs + h - 1, less<double>(), [](double a)-> bool {return isfinite(a) && a >= 0;}) - fracs;
-		if (row == h - 1)
-			break;
+		if (row == h - 1) {
+			delete[] fracs;
+			return false;
+		}
 		basic[row] = col;
 		row++;
 		NormalizeRow(mat, row, col);
@@ -80,6 +82,7 @@ void Simplex(fmatrix& mat, double eps, vector<int>& basic)
 		cout << "Row " << row << "; col " << col << '\n';
 	}
 	delete[] fracs;
+	return true;
 }
 
 vector<double> ReadVector(int n)
@@ -94,7 +97,7 @@ int main()
 {
 	vector<double> obj;
     string input;
-    cout << "Coefficients of objective function: ";
+    cout << "Enter the vector of coefficients of objective function: ";
     getline(cin, input);
     stringstream ss(input);
     double number;
@@ -102,7 +105,7 @@ int main()
         obj.push_back(number);
     }
 	int nvars = obj.size();
-	cout << "Number of constraints: ";
+	cout << "Enter the number of constraints: ";
 	int nconstraints; cin >> nconstraints;
 	fmatrix mat(1 + nconstraints, nvars + nconstraints + 1);
 	int w = mat.Width();
@@ -120,13 +123,19 @@ int main()
 	double eps;
 	cout << "Epsilon: "; cin >> eps;
 	vector<int> basic;
-	Simplex(mat, eps, basic);
+	bool isSimplexApplicable = Simplex(mat, eps, basic);
+	if (!isSimplexApplicable) {
+		cout << "The method is not applicable!";
+		return;
+	}
 	vector<double> vals(nvars);
 	for (int i = 0; i < basic.size(); i++)
 		if (basic[i] < nvars)
 			vals[basic[i]] = mat.Cell(i + 1, w - 1);
 
+	cout << "The vector of decision variables: (";
 	for (int i = 0; i < nvars; i++)
-		cout << "x" << i + 1 << " = " << vals[i] << '\n';
-	cout << "z = " << mat.Cell(0, w - 1) << '\n';
+		cout << vals[i] << ', ';
+	cout << ")\n";
+	cout << "Maximum value of objective function: " << mat.Cell(0, w - 1);
 }
