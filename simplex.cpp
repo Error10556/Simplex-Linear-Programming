@@ -106,23 +106,21 @@ vector<double> ReadVector(int n)
 	return res;
 }
 
+void printRow(const vector<double>& v, int n) {
+	for (int i = 0; i < n; ++i) {
+        if (v[i] < 0) cout << " - ";
+        if (v[i] > 0 && i > 0) cout << " + ";
+        cout << abs(v[i]) << " * x" << (i + 1);
+    }
+}
 void printOptimizationProblem(const vector<double>& obj, const fmatrix& mat) {
     cout << "Objective function: ";
     cout << "max z = ";
-    
-    for (int i = 0; i < obj.size(); ++i) {
-        if (obj[i] < 0) cout << " - ";
-        if (obj[i] > 0 && i > 0) cout << " + ";
-        cout << abs(obj[i]) << " * x" << (i + 1);
-    }
+    printRow(obj, obj.size());
     
     cout << "\nSubject to the constraints:\n";
     for (int i = 1; i < mat.Height(); ++i) {
-        for (int j = 0; j < mat.Width() - 1; ++j) {
-            if (obj[j] < 0) cout << " - ";
-        	if (obj[j] > 0 && j > 0) cout << " + ";
-            cout << abs(mat.Cell(i, j)) << " * x" << (j + 1);
-        }
+		printRow(mat.GetRow(i), mat.Width()/2);
         cout << " <= " << mat.Cell(i, mat.Width() - 1) << "\n";
     }
 }
