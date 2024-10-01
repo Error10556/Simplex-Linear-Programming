@@ -108,15 +108,18 @@ int main()
 	int w = mat.Width();
 	for (int i = 0; i < nvars; i++)
 		mat.Cell(0, i) = -obj[i];
-	cout << "In the next " << nconstraints << " lines, enter " << nvars + 1 << " numbers: the coefficients and the limit.\n";
+	cout << "In the next " << nconstraints << " lines, enter " << nvars <<
+        " numbers - the coefficients of the constraint.\n";
 	for (int i = 1; i <= nconstraints; i++)
 	{
 		double* row = mat.RowPtr(i);
 		for (int j = 0; j < nvars; j++)
 			cin >> row[j];
-		cin >> row[w - 1];
 		row[nvars + i - 1] = 1;
 	}
+    cout << "Enter a line with right-hand side numbers: ";
+    for (int i = 1; i <= nconstraints; i++)
+        cin >> mat.Cell(i, w - 1);
 	double eps;
 	cout << "Epsilon: "; cin >> eps;
 	vector<int> basic;
