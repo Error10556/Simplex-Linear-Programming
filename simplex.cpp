@@ -119,8 +119,8 @@ void printOptimizationProblem(const vector<double>& obj, const fmatrix& mat) {
     cout << "\nSubject to the constraints:\n";
     for (int i = 1; i < mat.Height(); ++i) {
         for (int j = 0; j < mat.Width() - 1; ++j) {
-            if (obj[i] < 0) cout << " - ";
-        	if (obj[i] > 0 && i > 0) cout << " + ";
+            if (obj[j] < 0) cout << " - ";
+        	if (obj[j] > 0 && j > 0) cout << " + ";
             cout << abs(mat.Cell(i, j)) << " * x" << (j + 1);
         }
         cout << " <= " << mat.Cell(i, mat.Width() - 1) << "\n";
@@ -176,7 +176,7 @@ int main()
 		cout << "The method is not applicable!";
 		return 0;
 	}
-	
+
 	vector<double> vals(nvars);
 	for (int i = 0; i < basic.size(); i++)
 		if (basic[i] < nvars)
