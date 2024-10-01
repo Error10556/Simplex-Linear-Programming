@@ -13,8 +13,6 @@ enum State {
 
 using namespace std;
 
-State solver_state = SOLVED;
-
 typedef Matrix<double> fmatrix;
 
 void NormalizeRow(fmatrix& mat, int row, int col)
@@ -59,7 +57,7 @@ Iter GetBest(Iter begin, Iter end, Comp comparator)
 	return GetBest(begin, end, comparator, [](decltype(*begin)) {return true;});
 }
 
-bool Simplex(fmatrix& mat, double eps, vector<int>& basic)
+State Simplex(fmatrix& mat, double eps, vector<int>& basic)
 {
 	double* toprow = mat.RowPtr(0);
 	int w = mat.Width();
@@ -78,7 +76,7 @@ bool Simplex(fmatrix& mat, double eps, vector<int>& basic)
 		int row = GetBest(fracs, fracs + h - 1, less<double>(), [](double a)-> bool {return isfinite(a) && a >= 0;}) - fracs;
 		if (row == h - 1) {
 			delete[] fracs;
-			return false;
+			return NOTAPPLICABLE;
 		}
 		basic[row] = col;
 		row++;
@@ -90,12 +88,12 @@ bool Simplex(fmatrix& mat, double eps, vector<int>& basic)
 			AddRow(mat, row, i, -mat.Cell(i, col));
 		}
 		if (isinf(mat.Cell(0, w - 1))) {
-			solver_state = UNBOUNDED;
-			return true;
+			delete[] fracs;
+			return UNBOUNDED;
 		}
 	}
 	delete[] fracs;
-	return true;
+	return SOLVED;
 }
 
 vector<double> ReadVector(int n)
@@ -110,7 +108,7 @@ void printRow(const vector<double>& v, int n) {
 	for (int i = 0; i < n; ++i) {
         if (v[i] < 0) cout << " - ";
         if (v[i] > 0 && i > 0) cout << " + ";
-        cout << abs(v[i]) << " * x" << (i + 1);
+        if (v[i] != 0) cout << abs(v[i]) << " * x" << (i + 1);
     }
 }
 void printOptimizationProblem(const vector<double>& obj, const fmatrix& mat) {
@@ -168,9 +166,9 @@ int main()
 	printOptimizationProblem(obj, mat);
 
 	vector<int> basic;
-	bool isSimplexApplicable = Simplex(mat, eps, basic);
+	State solver_state = Simplex(mat, eps, basic);
 
-	if (!isSimplexApplicable || solver_state == UNBOUNDED) {
+	if (solver_state != SOLVED) {
 		cout << "The method is not applicable!";
 		return 0;
 	}
