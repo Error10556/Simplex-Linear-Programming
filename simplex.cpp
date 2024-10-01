@@ -2,6 +2,7 @@
 #include <vector>
 #include <cmath>
 #include "Matrix.h"
+#include <sstream>
 using namespace std;
 
 typedef Matrix<float> fmatrix;
@@ -91,10 +92,16 @@ vector<float> ReadVector(int n)
 
 int main()
 {
-	cout << "Number of vars: ";
-	int nvars; cin >> nvars;
-	cout << "The objective function coefficients (" << nvars << " numbers): ";
-	vector<float> obj = ReadVector(nvars);
+	vector<double> obj;
+    string input;
+    cout << "Coefficients of objective function: ";
+    getline(cin, input);
+    stringstream ss(input);
+    double number;
+    while (ss >> number) {
+        obj.push_back(number);
+    }
+	int nvars = obj.size();
 	cout << "Number of constraints: ";
 	int nconstraints; cin >> nconstraints;
 	fmatrix mat(1 + nconstraints, nvars + nconstraints + 1);
