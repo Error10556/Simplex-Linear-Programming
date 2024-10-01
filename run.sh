@@ -1,4 +1,3 @@
 #!/bin/sh
-make;
-./simplex.bin;
+make run;
 
