@@ -3,7 +3,17 @@
 #include <cmath>
 #include "Matrix.h"
 #include <sstream>
+#define DEFAULT_EPS 0.000001
+
+enum State {
+    UNBOUNDED,
+    NOTAPPLICABLE,
+    SOLVED
+};
+
 using namespace std;
+
+State solver_state = SOLVED;
 
 typedef Matrix<double> fmatrix;
 
@@ -79,7 +89,10 @@ bool Simplex(fmatrix& mat, double eps, vector<int>& basic)
 				continue;
 			AddRow(mat, row, i, -mat.Cell(i, col));
 		}
-		cout << "Row " << row << "; col " << col << '\n';
+		if (isinf(mat.Cell(0, w - 1))) {
+			solver_state = UNBOUNDED;
+			return true;
+		}
 	}
 	delete[] fracs;
 	return true;
@@ -93,11 +106,30 @@ vector<double> ReadVector(int n)
 	return res;
 }
 
+void printRow(const vector<double>& v, int n) {
+	for (int i = 0; i < n; ++i) {
+        if (v[i] < 0) cout << " - ";
+        if (v[i] > 0 && i > 0) cout << " + ";
+        cout << abs(v[i]) << " * x" << (i + 1);
+    }
+}
+void printOptimizationProblem(const vector<double>& obj, const fmatrix& mat) {
+    cout << "Objective function: ";
+    cout << "max z = ";
+    printRow(obj, obj.size());
+    
+    cout << "\nSubject to the constraints:\n";
+    for (int i = 1; i < mat.Height(); ++i) {
+		printRow(mat.GetRow(i), mat.Width()/2);
+        cout << " <= " << mat.Cell(i, mat.Width() - 1) << "\n";
+    }
+}
+
 int main()
 {
 	vector<double> obj;
     string input;
-    cout << "Enter the vector of coefficients of objective function: ";
+    cout << "Enter a vector of coefficients of the objective function: ";
     getline(cin, input);
     stringstream ss(input);
     double number;
@@ -105,14 +137,15 @@ int main()
         obj.push_back(number);
     }
 	int nvars = obj.size();
+
 	cout << "Enter the number of constraints: ";
 	int nconstraints; cin >> nconstraints;
 	fmatrix mat(1 + nconstraints, nvars + nconstraints + 1);
 	int w = mat.Width();
 	for (int i = 0; i < nvars; i++)
 		mat.Cell(0, i) = -obj[i];
-	cout << "In the next " << nconstraints << " lines, enter " << nvars <<
-        " numbers - the coefficients of the constraint.\n";
+
+	cout << "Enter a matrix of coefficients of the constraint functions\n";
 	for (int i = 1; i <= nconstraints; i++)
 	{
 		double* row = mat.RowPtr(i);
@@ -120,25 +153,38 @@ int main()
 			cin >> row[j];
 		row[nvars + i - 1] = 1;
 	}
-    cout << "Enter a line with right-hand side numbers: ";
+
+    cout << "Enter a vector of right-hand side values: ";
     for (int i = 1; i <= nconstraints; i++)
         cin >> mat.Cell(i, w - 1);
-	double eps;
-	cout << "Epsilon: "; cin >> eps;
+
+	cout << "Enter approximation accuracy (optional): ";
+	cin.ignore();
+    getline(cin, input);
+    double eps;
+    if (input.empty()) eps = DEFAULT_EPS;
+    else eps = stod(input);
+
+	printOptimizationProblem(obj, mat);
+
 	vector<int> basic;
 	bool isSimplexApplicable = Simplex(mat, eps, basic);
-	if (!isSimplexApplicable) {
+
+	if (!isSimplexApplicable || solver_state == UNBOUNDED) {
 		cout << "The method is not applicable!";
 		return 0;
 	}
+
 	vector<double> vals(nvars);
 	for (int i = 0; i < basic.size(); i++)
 		if (basic[i] < nvars)
 			vals[basic[i]] = mat.Cell(i + 1, w - 1);
 
 	cout << "The vector of decision variables: (";
-	for (int i = 0; i < nvars; i++)
-		cout << vals[i] << ", ";
+	for (int i = 0; i < nvars; i++) {
+		cout << vals[i];
+		if (i < nvars - 1) cout << ", ";
+	}
 	cout << ")\n";
-	cout << "Maximum value of objective function: " << mat.Cell(0, w - 1);
+	cout << "Maximum value of objective function: " << mat.Cell(0, w - 1) << "\n";
 }
