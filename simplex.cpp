@@ -3,6 +3,8 @@
 #include <cmath>
 #include "Matrix.h"
 #include <sstream>
+#define DEFAULT_EPS 0.000001
+
 using namespace std;
 
 typedef Matrix<double> fmatrix;
@@ -97,7 +99,7 @@ int main()
 {
 	vector<double> obj;
     string input;
-    cout << "Enter the vector of coefficients of objective function: ";
+    cout << "Enter a vector of coefficients of the objective function: ";
     getline(cin, input);
     stringstream ss(input);
     double number;
@@ -105,14 +107,15 @@ int main()
         obj.push_back(number);
     }
 	int nvars = obj.size();
+
 	cout << "Enter the number of constraints: ";
 	int nconstraints; cin >> nconstraints;
 	fmatrix mat(1 + nconstraints, nvars + nconstraints + 1);
 	int w = mat.Width();
 	for (int i = 0; i < nvars; i++)
 		mat.Cell(0, i) = -obj[i];
-	cout << "In the next " << nconstraints << " lines, enter " << nvars <<
-        " numbers - the coefficients of the constraint.\n";
+
+	cout << "Enter a matrix of coefficients of the constraint functions\n";
 	for (int i = 1; i <= nconstraints; i++)
 	{
 		double* row = mat.RowPtr(i);
@@ -120,11 +123,18 @@ int main()
 			cin >> row[j];
 		row[nvars + i - 1] = 1;
 	}
-    cout << "Enter a line with right-hand side numbers: ";
+
+    cout << "Enter a vector of right-hand side values: ";
     for (int i = 1; i <= nconstraints; i++)
         cin >> mat.Cell(i, w - 1);
-	double eps;
-	cout << "Epsilon: "; cin >> eps;
+
+	cout << "Enter approximation accuracy (optional): ";
+	cin.ignore();
+    getline(cin, input);
+    double eps;
+    if (input.empty()) eps = DEFAULT_EPS;
+    else eps = stod(input);
+
 	vector<int> basic;
 	bool isSimplexApplicable = Simplex(mat, eps, basic);
 	if (!isSimplexApplicable) {
@@ -140,5 +150,5 @@ int main()
 	for (int i = 0; i < nvars; i++)
 		cout << vals[i] << ", ";
 	cout << ")\n";
-	cout << "Maximum value of objective function: " << mat.Cell(0, w - 1);
+	cout << "Maximum value of objective function: " << mat.Cell(0, w - 1) << "\n";
 }
