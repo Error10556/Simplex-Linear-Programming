@@ -5,12 +5,12 @@
 #include <sstream>
 using namespace std;
 
-typedef Matrix<float> fmatrix;
+typedef Matrix<double> fmatrix;
 
 void NormalizeRow(fmatrix& mat, int row, int col)
 {
-	float factor = mat.Cell(row, col);
-	float* prow = mat.RowPtr(row);
+	double factor = mat.Cell(row, col);
+	double* prow = mat.RowPtr(row);
 	int w = mat.Width();
 	for (int i = 0; i < w; i++)
 		if (i == col)
@@ -19,10 +19,10 @@ void NormalizeRow(fmatrix& mat, int row, int col)
 			prow[i] /= factor;
 }
 
-void AddRow(fmatrix& mat, int src, int dest, float factor)
+void AddRow(fmatrix& mat, int src, int dest, double factor)
 {
-	float* psrc = mat.RowPtr(src);
-	float* pdest = mat.RowPtr(dest);
+	double* psrc = mat.RowPtr(src);
+	double* pdest = mat.RowPtr(dest);
 	int w = mat.Width();
 	for (int i = 0; i < w; i++)
 		pdest[i] += factor * psrc[i];
@@ -49,23 +49,23 @@ Iter GetBest(Iter begin, Iter end, Comp comparator)
 	return GetBest(begin, end, comparator, [](decltype(*begin)) {return true;});
 }
 
-void Simplex(fmatrix& mat, float eps, vector<int>& basic)
+void Simplex(fmatrix& mat, double eps, vector<int>& basic)
 {
-	float* toprow = mat.RowPtr(0);
+	double* toprow = mat.RowPtr(0);
 	int w = mat.Width();
 	int h = mat.Height();
-	float* fracs = new float[h - 1];
+	double* fracs = new double[h - 1];
 	basic.resize(h - 1);
 	for (int i = 0; i < basic.size(); i++)
 		basic[i] = i + h - 1;
 	while (true)
 	{
-		int col = GetBest(toprow, toprow + w - 1, less<float>()) - toprow;
+		int col = GetBest(toprow, toprow + w - 1, less<double>()) - toprow;
 		if (toprow[col] > -eps)
 			break;
 		for (int i = 0; i < h - 1; i++)
 			fracs[i] = mat.Cell(1 + i, w - 1) / mat.Cell(1 + i, col);
-		int row = GetBest(fracs, fracs + h - 1, less<float>(), [](float a)-> bool {return isfinite(a) && a >= 0;}) - fracs;
+		int row = GetBest(fracs, fracs + h - 1, less<double>(), [](double a)-> bool {return isfinite(a) && a >= 0;}) - fracs;
 		if (row == h - 1)
 			break;
 		basic[row] = col;
@@ -82,10 +82,10 @@ void Simplex(fmatrix& mat, float eps, vector<int>& basic)
 	delete[] fracs;
 }
 
-vector<float> ReadVector(int n)
+vector<double> ReadVector(int n)
 {
-	vector<float> res(n);
-	for (float& i : res)
+	vector<double> res(n);
+	for (double& i : res)
 		cin >> i;
 	return res;
 }
@@ -111,17 +111,17 @@ int main()
 	cout << "In the next " << nconstraints << " lines, enter " << nvars + 1 << " numbers: the coefficients and the limit.\n";
 	for (int i = 1; i <= nconstraints; i++)
 	{
-		float* row = mat.RowPtr(i);
+		double* row = mat.RowPtr(i);
 		for (int j = 0; j < nvars; j++)
 			cin >> row[j];
 		cin >> row[w - 1];
 		row[nvars + i - 1] = 1;
 	}
-	float eps;
+	double eps;
 	cout << "Epsilon: "; cin >> eps;
 	vector<int> basic;
 	Simplex(mat, eps, basic);
-	vector<float> vals(nvars);
+	vector<double> vals(nvars);
 	for (int i = 0; i < basic.size(); i++)
 		if (basic[i] < nvars)
 			vals[basic[i]] = mat.Cell(i + 1, w - 1);
