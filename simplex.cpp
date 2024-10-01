@@ -87,7 +87,8 @@ State Simplex(fmatrix& mat, double eps, vector<int>& basic)
 				continue;
 			AddRow(mat, row, i, -mat.Cell(i, col));
 		}
-		if (isinf(mat.Cell(0, w - 1))) {
+        auto solcell = mat.Cell(0, w - 1);
+		if (!isfinite(solcell) || solcell >= 1e9) {
 			delete[] fracs;
 			return UNBOUNDED;
 		}
@@ -169,7 +170,7 @@ int main()
 	State solver_state = Simplex(mat, eps, basic);
 
 	if (solver_state != SOLVED) {
-		cout << "The method is not applicable!";
+		cout << "The method is not applicable!\n";
 		return 0;
 	}
 
