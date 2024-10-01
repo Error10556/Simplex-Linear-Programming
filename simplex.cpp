@@ -129,7 +129,7 @@ int main()
 	bool isSimplexApplicable = Simplex(mat, eps, basic);
 	if (!isSimplexApplicable) {
 		cout << "The method is not applicable!";
-		return;
+		return 0;
 	}
 	vector<double> vals(nvars);
 	for (int i = 0; i < basic.size(); i++)
@@ -138,7 +138,7 @@ int main()
 
 	cout << "The vector of decision variables: (";
 	for (int i = 0; i < nvars; i++)
-		cout << vals[i] << ', ';
+		cout << vals[i] << ", ";
 	cout << ")\n";
 	cout << "Maximum value of objective function: " << mat.Cell(0, w - 1);
 }
