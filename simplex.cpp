@@ -73,13 +73,14 @@ State Simplex(fmatrix& mat, double eps, vector<int>& basic)
 			break;
 		for (int i = 0; i < h - 1; i++)
 			fracs[i] = mat.Cell(1 + i, w - 1) / mat.Cell(1 + i, col);
-		int row = GetBest(fracs, fracs + h - 1, less<double>(), [](double a)-> bool {return isfinite(a) && a >= 0;}) - fracs;
+        int row = GetBest(fracs, fracs + h - 1, less<double>(), [eps](double a)-> bool {return (/*isfinite(a) ||*/ a <= 1e9) && a >= 0;}) - fracs;
 		if (row == h - 1) {
 			delete[] fracs;
 			return NOTAPPLICABLE;
 		}
 		basic[row] = col;
 		row++;
+        cout << "Row: " << row << ", col: " << col << endl;
 		NormalizeRow(mat, row, col);
 		for (int i = 0; i < h; i++)
 		{
@@ -92,6 +93,13 @@ State Simplex(fmatrix& mat, double eps, vector<int>& basic)
 			delete[] fracs;
 			return UNBOUNDED;
 		}
+        for (int i = 0; i < h; i++)
+        {
+            for (int j = 0; j < w; j++)
+                cout << mat.Cell(i, j) << '\t';
+            cout << endl;
+        }
+        cout << endl;
 	}
 	delete[] fracs;
 	return SOLVED;
@@ -119,7 +127,7 @@ void printOptimizationProblem(const vector<double>& obj, const fmatrix& mat) {
     
     cout << "\nSubject to the constraints:\n";
     for (int i = 1; i < mat.Height(); ++i) {
-		printRow(mat.GetRow(i), mat.Width()/2);
+		printRow(mat.GetRow(i), obj.size());
         cout << " <= " << mat.Cell(i, mat.Width() - 1) << "\n";
     }
 }
