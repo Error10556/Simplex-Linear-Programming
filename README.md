@@ -6,7 +6,7 @@ Use `make run` or `./run.sh`
 
 #### Running a test
 
-Use `./run_test.sh 2` to run the second test. Substiture the `2` with a number
+Use `./run_test.sh 2` to run the second test. Substitute the `2` with a number
 from 1 to 5 to run that test.
 
 #### Solving the linear programming problem
