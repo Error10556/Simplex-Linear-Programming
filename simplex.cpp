@@ -79,7 +79,7 @@ State Simplex(fmatrix& mat, double eps, vector<int>& basic)
 	basic.resize(h - 1);
 	for (int i = 0; i < basic.size(); i++)
 		basic[i] = i + h - 1;
-    printMatrix(mat);
+    //printMatrix(mat);
 	while (true)
 	{
 		int col = GetBest(toprow, toprow + w - 1, less<double>()) - toprow;
@@ -101,7 +101,7 @@ State Simplex(fmatrix& mat, double eps, vector<int>& basic)
 		}
 		basic[row] = col;
 		row++;
-        cout << "Row: " << row << ", col: " << col << endl;
+        //cout << "Row: " << row << ", col: " << col << endl;
 		NormalizeRow(mat, row, col);
 		for (int i = 0; i < h; i++)
 		{
@@ -114,7 +114,7 @@ State Simplex(fmatrix& mat, double eps, vector<int>& basic)
 			delete[] fracs;
 			return UNBOUNDED;
 		}
-        printMatrix(mat);
+        //printMatrix(mat);
 	}
 	delete[] fracs;
 	return SOLVED;
