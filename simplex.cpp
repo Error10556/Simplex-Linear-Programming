@@ -57,6 +57,19 @@ Iter GetBest(Iter begin, Iter end, Comp comparator)
 	return GetBest(begin, end, comparator, [](decltype(*begin)) {return true;});
 }
 
+void printMatrix(const fmatrix& mat)
+{
+    int h = mat.Height();
+    int w = mat.Width();
+    for (int i = 0; i < h; i++)
+    {
+        for (int j = 0; j < w; j++)
+            cout << mat.Cell(i, j) << '\t';
+        cout << endl;
+    }
+    cout << endl;
+}
+
 State Simplex(fmatrix& mat, double eps, vector<int>& basic)
 {
 	double* toprow = mat.RowPtr(0);
@@ -66,13 +79,21 @@ State Simplex(fmatrix& mat, double eps, vector<int>& basic)
 	basic.resize(h - 1);
 	for (int i = 0; i < basic.size(); i++)
 		basic[i] = i + h - 1;
+    printMatrix(mat);
 	while (true)
 	{
 		int col = GetBest(toprow, toprow + w - 1, less<double>()) - toprow;
 		if (toprow[col] > -eps)
 			break;
 		for (int i = 0; i < h - 1; i++)
-			fracs[i] = mat.Cell(1 + i, w - 1) / mat.Cell(1 + i, col);
+        {
+            auto sol = mat.Cell(1 + i, w - 1);
+            auto divisor = mat.Cell(1 + i, col);
+            if (sol >= 0 && sol <= eps && divisor < 0)
+                fracs[i] = -1;
+            else
+			    fracs[i] = sol / divisor;
+        }
         int row = GetBest(fracs, fracs + h - 1, less<double>(), [eps](double a)-> bool {return (/*isfinite(a) ||*/ a <= 1e9) && a >= 0;}) - fracs;
 		if (row == h - 1) {
 			delete[] fracs;
@@ -93,13 +114,7 @@ State Simplex(fmatrix& mat, double eps, vector<int>& basic)
 			delete[] fracs;
 			return UNBOUNDED;
 		}
-        for (int i = 0; i < h; i++)
-        {
-            for (int j = 0; j < w; j++)
-                cout << mat.Cell(i, j) << '\t';
-            cout << endl;
-        }
-        cout << endl;
+        printMatrix(mat);
 	}
 	delete[] fracs;
 	return SOLVED;
