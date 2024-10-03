@@ -6,3 +6,6 @@ simplex.bin: simplex.cpp Matrix.h Matrix.cpp
 run: simplex.bin
 	./simplex.bin
 
+clean:
+	rm simplex.bin
+
